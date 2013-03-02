@@ -76,28 +76,39 @@ xpcc::stm32::UartHal5::configurePins(Mapping mapping)
 void
 xpcc::stm32::UartHal5::setBaudrate(uint32_t baudrate)
 {
-	// FIXME: there seems to be a bug in the stm32f3xxlib which does not provide
+	UART5->BRR =	calculateBaudrateSettings(apbClk, baudrate);
+}
+
+// ----------------------------------------------------------------------------
+void
+xpcc::stm32::UartHal5::enable()
+{
+// FIXME: there seems to be a bug in the stm32f3xxlib which does not provide
 	//        the necessary RCC_APB1ENR_UART5EN define and probably defines
 	//        RCC_APB1ENR_UART4EN incorrectly (0x00100000 instead of 0x00080000)
 	// enable clock
 	RCC->APB1ENR |= RCC_APB1ENR_UART5EN;
-	// reset timer
+	// reset uart
 	RCC->APB1RSTR |=  RCC_APB1RSTR_UART5RST;
 	RCC->APB1RSTR &= ~RCC_APB1RSTR_UART5RST;
-	
-	UART5->CR1 = 0;
-	
-	// Set baudrate
-	UART5->BRR = calculateBaudrateSettings(apbClk, baudrate);
-	
-	// Transmitter & Receiver-Enable, 8 Data Bits, 1 Stop Bit
-	UART5->CR1 |= USART_CR1_TE | USART_CR1_RE;
-	UART5->CR2 = 0;
-	UART5->CR3 = 0;
-	
+
 	UART5->CR1 |= USART_CR1_UE;		// Uart Enable
 }
 
+// ----------------------------------------------------------------------------
+void
+xpcc::stm32::UartHal5::disable()
+{
+	UART5->CR1 = 0;		// TX, RX, Uart, etc. Disable
+
+// FIXME: there seems to be a bug in the stm32f3xxlib which does not provide
+	//        the necessary RCC_APB1ENR_UART5EN define and probably defines
+	//        RCC_APB1ENR_UART4EN incorrectly (0x00100000 instead of 0x00080000)
+	// disable clock
+	RCC->APB1ENR &= ~RCC_APB1ENR_UART5EN;
+}
+
+// ----------------------------------------------------------------------------
 void
 xpcc::stm32::UartHal5::enableInterruptVector(bool enable,
 uint32_t priority)

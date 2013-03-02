@@ -83,25 +83,33 @@ xpcc::stm32::UsartHal6::configurePins(Mapping mapping)
 void
 xpcc::stm32::UsartHal6::setBaudrate(uint32_t baudrate)
 {
-	// enable clock
+	USART6->BRR =	calculateBaudrateSettings(apbClk, baudrate);
+}
+
+// ----------------------------------------------------------------------------
+void
+xpcc::stm32::UsartHal6::enable()
+{
+// enable clock
 	RCC->APB2ENR |= RCC_APB2ENR_USART6EN;
 	// reset timer
 	RCC->APB2RSTR |=  RCC_APB2RSTR_USART6RST;
 	RCC->APB2RSTR &= ~RCC_APB2RSTR_USART6RST;
-	
-	USART6->CR1 = 0;
-	
-	// Set baudrate
-	USART6->BRR = calculateBaudrateSettings(apbClk, baudrate);
-	
-	// Transmitter & Receiver-Enable, 8 Data Bits, 1 Stop Bit
-	USART6->CR1 |= USART_CR1_TE | USART_CR1_RE;
-	USART6->CR2 = 0;
-	USART6->CR3 = 0;
-	
+
 	USART6->CR1 |= USART_CR1_UE;		// Uart Enable
 }
 
+// ----------------------------------------------------------------------------
+void
+xpcc::stm32::UsartHal6::disable()
+{
+	USART6->CR1 = 0;		// TX, RX, Uart, etc. Disable
+
+// disable clock
+	RCC->APB2ENR &= ~RCC_APB2ENR_USART6EN;
+}
+
+// ----------------------------------------------------------------------------
 void
 xpcc::stm32::UsartHal6::enableInterruptVector(bool enable,
 uint32_t priority)

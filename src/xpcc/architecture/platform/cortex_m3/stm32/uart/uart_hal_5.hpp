@@ -94,9 +94,31 @@ namespace xpcc
 			};
 
 		public:
-			UartHal5(uint32_t baudrate)
+
+			/*
+			 * Enables the clock, resets the hardware and sets the UE bit
+			 */
+			static void
+			enable();
+
+			/*
+			 * Disables the hw module (by disabling its clock line)
+			 */
+			static void
+			disable();
+
+			/*
+			 * Initiaize Uart Hall Peripheral
+			 *
+			 * Enables clocks, the UART peripheral (but neither TX nor RX)
+			 * Sets baudrate and parity.
+			 */
+			static void
+			initialize(uint32_t baudrate, Parity parity = PARITY_DISABLED)
 			{
+				enable();
 				setBaudrate(baudrate);
+				setParity(parity);
 			}
 
 			enum Mapping
@@ -110,9 +132,10 @@ namespace xpcc
 			static void
 			configurePins(Mapping mapping);
 
-			/**
-			 * \brief	Set baudrate
-			 * \param	baudrate	desired baud rate
+			/*
+			 * Set Baudrate
+			 *
+			 * Remember to enable the periheral before setting the baudrate
 			 */
 			static void
 			setBaudrate(uint32_t baudrate);
