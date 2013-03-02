@@ -235,7 +235,7 @@ namespace xpcc
 			 * Returns true if data can be written
 			 */
 			static inline bool
-			isTrasmitRegisterEmpty()
+			isTransmitRegisterEmpty()
 			{
 			#if defined(STM32F3XX)
 				return USART3->ISR & USART_ISR_TXE;
@@ -274,9 +274,15 @@ namespace xpcc
 			static inline void
 			resetInterruptFlags(InterruptFlag flags)
 			{
+				// Not all flags can be cleared by writing to this reg
+				const uint32_t mask = USART_ICR_PECF  | USART_ICR_FECF   |
+					USART_ICR_NCF   | USART_ICR_ORECF | USART_ICR_IDLECF |
+					USART_ICR_TCCF  | USART_ICR_LBDCF | USART_ICR_CTSCF  |
+					USART_ICR_RTOCF | USART_ICR_EOBCF | USART_ICR_CMCF   |
+					USART_ICR_WUCF;
 				// Flags are cleared by writing a one to the flag position.
 				// Writing a zero is (hopefully) ignored.
-				USART3->ISR = flags;
+				USART3->ICR = (flags & mask);
 			}
 		};
 	}
