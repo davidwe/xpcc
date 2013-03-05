@@ -55,7 +55,7 @@ namespace xpcc
 		 */
 		class UsartHal6 : public UartBase
 		{
-
+		public:
 			enum Interrupt
 			{
 				INTERRUPT_CHARACTER_MATCH = USART_CR1_CMIE,
@@ -117,8 +117,12 @@ namespace xpcc
 			initialize(uint32_t baudrate, Parity parity = PARITY_DISABLED)
 			{
 				enable();
+				// DIRTY HACK: disable and reenable uart to be able to set
+				//             baud rate as well as parity
+				USART6->CR1 &= ~USART_CR1_UE;	// Uart Disable
 				setBaudrate(baudrate);
 				setParity(parity);
+				USART6->CR1 |=  USART_CR1_UE;	// Uart Reenable
 			}
 
 			enum Mapping
@@ -137,6 +141,10 @@ namespace xpcc
 			static void
 			configurePins(Mapping mapping);
 
+		private:	// This methods can only be executed while UART is
+					// disabled.
+					// At the moment this is only the case in the initialize
+					// method.
 			/*
 			 * Set Baudrate
 			 *
@@ -144,6 +152,24 @@ namespace xpcc
 			 */
 			static void
 			setBaudrate(uint32_t baudrate);
+
+			/*
+			 * Disable Parity or Enable Odd/Even Parity
+			 *
+			 * This method assumes 8 databit + 1 parity bit
+			 */
+			static inline void
+			setParity(Parity parity)
+			{
+				uint32_t flags = USART6->CR1;
+				flags &= ~(USART_CR1_PCE | USART_CR1_PS);
+				flags |= parity;
+				// Parity Bit counts as 9th bit -> enable 9 data bits
+				flags |= USART_CR1_M;
+				USART6->CR1 = flags;
+			}
+
+		public:
 
 			/*
 			 * \brief	Write a single byte to the transmit register
@@ -179,17 +205,7 @@ namespace xpcc
 			#endif
 			}
 
-			/*
-			 * Disable Parity or Enable Odd/Even Parity
-			 */
-			static inline void
-			setParity(Parity parity)
-			{
-				uint32_t flags = USART6->CR1;
-				flags &= ~(USART_CR1_PCE | USART_CR1_PS);
-				flags |= parity;
-				USART6->CR1 = flags;
-			}
+
 
 			/*
 			 * Enable/Disable Transmitter
