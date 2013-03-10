@@ -48,7 +48,7 @@ namespace xpcc
 		 * 
 		 * Not available on the low- and medium density devices.
 		 * 
-		 * Very badic implementation that exposes more hardware features than
+		 * Very basic implementation that exposes more hardware features than
 		 * the regular Usart classes.
 		 * 
 		 * @ingroup		stm32
@@ -60,7 +60,7 @@ namespace xpcc
 			{
 				INTERRUPT_CHARACTER_MATCH = USART_CR1_CMIE,
 				// called when the transmit register is empty (i.e. the byte
-				// has been tranfered to the shift out register)
+				// has been transfered to the shift out register)
 				INTERRUPT_TX_EMPTY		= USART_CR1_TXEIE,
 				// called when the byte was actually transmitted
 				INTERRUPT_TX_COMPLETE	= USART_CR1_TCIE,
@@ -77,11 +77,11 @@ namespace xpcc
 				FLAG_PARITY_ERROR		= USART_ISR_PE,
 			};
 
-			enum Parity
+			enum class Parity : uint32_t
 			{
-				PARITY_DISABLED = 0,
-				PARITY_EVEN = USART_CR1_PCE,
-				PARITY_ODD  = USART_CR1_PCE | USART_CR1_PS,
+				Disabled 	= 0,
+				Even 		= USART_CR1_PCE,
+				Odd  		= USART_CR1_PCE | USART_CR1_PS,
 			};
 
 			enum ErrorFlag
@@ -114,7 +114,7 @@ namespace xpcc
 			 * Sets baudrate and parity.
 			 */
 			static void
-			initialize(uint32_t baudrate, Parity parity = PARITY_DISABLED)
+			initialize(uint32_t baudrate, Parity parity = Parity::Disabled)
 			{
 				enable();
 				// DIRTY HACK: disable and reenable uart to be able to set
@@ -163,7 +163,7 @@ namespace xpcc
 			{
 				uint32_t flags = USART6->CR1;
 				flags &= ~(USART_CR1_PCE | USART_CR1_PS);
-				flags |= parity;
+				flags |= static_cast<uint32_t>(parity);
 				// Parity Bit counts as 9th bit -> enable 9 data bits
 				flags |= USART_CR1_M;
 				USART6->CR1 = flags;
