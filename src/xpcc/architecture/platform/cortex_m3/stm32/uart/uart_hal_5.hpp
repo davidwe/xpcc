@@ -1,6 +1,6 @@
 // coding: utf-8
 // ----------------------------------------------------------------------------
-/* Copyright (c) 2011, Roboterclub Aachen e.V.
+/* Copyright (c) 2013, Roboterclub Aachen e.V.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,8 +62,7 @@ namespace xpcc
 				// called when the transmit register is empty (i.e. the byte
 				// has been transfered to the shift out register)
 				INTERRUPT_TX_EMPTY		= USART_CR1_TXEIE,
-				// called when the byte was actually transmitted
-				INTERRUPT_TX_COMPLETE	= USART_CR1_TCIE,
+				INTERRUPT_TX_COMPLETE	= USART_CR1_TCIE,		/**< called when the byte was completely transmitted*/
 				INTERRUPT_RX_NOT_EMPTY	= USART_CR1_RXNEIE,
 				INTERRUPT_PARITY_ERROR	= USART_CR1_PEIE,
 			};
@@ -86,11 +85,11 @@ namespace xpcc
 
 			enum ErrorFlag
 			{
-				ERROR_OVERRUN = USART_ISR_ORE,
+				ERROR_OVERRUN 	= USART_ISR_ORE,
 				// set if a de-synchronization,
 				// excessive noise or a break character is detected
-				ERROR_FRAMING = USART_ISR_FE,
-				ERROR_PARITY = USART_ISR_PE,
+				ERROR_FRAMING 	= USART_ISR_FE,
+				ERROR_PARITY 	= USART_ISR_PE,
 			};
 
 		public:
@@ -108,7 +107,7 @@ namespace xpcc
 			disable();
 
 			/*
-			 * Initiaize Uart Hall Peripheral
+			 * Initialize Uart HAL Peripheral
 			 *
 			 * Enables clocks, the UART peripheral (but neither TX nor RX)
 			 * Sets baudrate and parity.
@@ -151,16 +150,18 @@ namespace xpcc
 			/*
 			 * Disable Parity or Enable Odd/Even Parity
 			 *
-			 * This method assumes 8 databit + 1 parity bit
+			 * This method assumes 8 databits + 1 parity bit
 			 */
 			static inline void
-			setParity(Parity parity)
+			setParity(const Parity parity)
 			{
 				uint32_t flags = UART5->CR1;
-				flags &= ~(USART_CR1_PCE | USART_CR1_PS);
+				flags &= ~(USART_CR1_PCE | USART_CR1_PS | USART_CR1_M);
 				flags |= static_cast<uint32_t>(parity);
-				// Parity Bit counts as 9th bit -> enable 9 data bits
-				flags |= USART_CR1_M;
+				if (parity != Parity::Disabled) {
+					// Parity Bit counts as 9th bit -> enable 9 data bits
+					flags |= USART_CR1_M;
+				}
 				UART5->CR1 = flags;
 			}
 
@@ -178,8 +179,10 @@ namespace xpcc
 			{
 			#if defined(STM32F3XX)
 				UART5->TDR = data;
-			#else
+			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4Xx)
 				UART5->DR = data;
+			#else
+				#error "This file is only for STM32F{1, 2, 3, 4}"
 			#endif
 			}
 
@@ -195,8 +198,10 @@ namespace xpcc
 			{
 			#if defined(STM32F3XX)
 				return UART5->RDR;
-			#else
+			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4Xx)
 				return UART5->DR;
+			#else
+				#error "This file is only for STM32F{1, 2, 3, 4}"
 			#endif
 			}
 
@@ -206,12 +211,13 @@ namespace xpcc
 			 * Enable/Disable Transmitter
 			 */
 			static inline void
-			setTransmitterEnable(bool enable)
+			setTransmitterEnable(const bool enable)
 			{
-				if(enable)
+				if (enable) {
 					UART5->CR1 |=  USART_CR1_TE;
-				else
+				} else {
 					UART5->CR1 &= ~USART_CR1_TE;
+				}
 			}
 
 			/*
@@ -220,10 +226,11 @@ namespace xpcc
 			static inline void
 			setReceiverEnable(bool enable)
 			{
-				if(enable)
+				if (enable) {
 					UART5->CR1 |=  USART_CR1_RE;
-				else
+				} else {
 					UART5->CR1 &= ~USART_CR1_RE;
+				}
 			}
 
 			/*
@@ -234,8 +241,10 @@ namespace xpcc
 			{
 			#if defined(STM32F3XX)
 				return UART5->ISR & USART_ISR_RXNE;
-			#else
+			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4Xx)
 				return UART5->SR & USART_SR_RXNE;
+			#else
+				#error "This file is only for STM32F{1, 2, 3, 4}"
 			#endif
 			}
 
@@ -247,8 +256,10 @@ namespace xpcc
 			{
 			#if defined(STM32F3XX)
 				return UART5->ISR & USART_ISR_TXE;
-			#else
+			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4Xx)
 				return UART5->SR & USART_SR_TXE;
+			#else
+				#error "This file is only for STM32F{1, 2, 3, 4}"
 			#endif
 			}
 
@@ -270,13 +281,13 @@ namespace xpcc
 			static inline InterruptFlag
 			getInterruptFlags()
 			{
-				return (InterruptFlag) UART5->ISR;
+				return static_cast<InterruptFlag>( UART5->ISR );
 			}
 
 			static inline ErrorFlag
 			getErrorFlags()
 			{
-				return (ErrorFlag) UART5->ISR;
+				return static_cast<ErrorFlag>( UART5->ISR );
 			}
 
 			static inline void
