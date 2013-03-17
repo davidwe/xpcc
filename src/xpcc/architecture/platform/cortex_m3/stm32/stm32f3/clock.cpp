@@ -54,7 +54,7 @@ void
 xpcc::stm32::Clock::enablePll(PllSource source, PllMul pllM)
 {
 #if defined(STM32F3XX)
-#	warning "this is not tested yet"
+#	warning "this is not tested yet and its known that HSI does not work"
 
 	uint32_t tmp = 0;
 	
@@ -64,9 +64,10 @@ xpcc::stm32::Clock::enablePll(PllSource source, PllMul pllM)
 			(1 << 15) | (1 << 14) |
 			(1 <<  3) | (1 <<  2));
 	
-	// PLLSRC source for pll
-	tmp |= (source == PllSource::PLL_HSI) ? RCC_CFGR_PLLSRC_HSI_Div2
-			: RCC_CFGR_PLLSRC_PREDIV1;
+	// PLLSRC source for PLL
+//	tmp |= (source == PllSource::PLL_HSI) ? RCC_CFGR_PLLSRC_HSI_Div2
+//			: RCC_CFGR_PLLSRC_PREDIV1;
+	tmp |= RCC_CFGR_PLLSRC_PREDIV1;
 	
 	// PLLMUL = factor is user defined
 	tmp |=  static_cast<uint32_t>(pllM);
