@@ -168,7 +168,7 @@ namespace xpcc
 			{
 			#if defined(STM32F3XX)
 				{{ moduleName }}{{ id }}->TDR = data;
-			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4Xx)
+			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4XX)
 				{{ moduleName }}{{ id }}->DR = data;
 			#else
 				#error "This file is only for STM32F{1, 2, 3, 4}"
@@ -187,7 +187,7 @@ namespace xpcc
 			{
 			#if defined(STM32F3XX)
 				return {{ moduleName }}{{ id }}->RDR;
-			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4Xx)
+			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4XX)
 				return {{ moduleName }}{{ id }}->DR;
 			#else
 				#error "This file is only for STM32F{1, 2, 3, 4}"
@@ -230,7 +230,7 @@ namespace xpcc
 			{
 			#if defined(STM32F3XX)
 				return {{ moduleName }}{{ id }}->ISR & USART_ISR_RXNE;
-			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4Xx)
+			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4XX)
 				return {{ moduleName }}{{ id }}->SR & USART_SR_RXNE;
 			#else
 				#error "This file is only for STM32F{1, 2, 3, 4}"
@@ -245,7 +245,7 @@ namespace xpcc
 			{
 			#if defined(STM32F3XX)
 				return {{ moduleName }}{{ id }}->ISR & USART_ISR_TXE;
-			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4Xx)
+			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4XX)
 				return {{ moduleName }}{{ id }}->SR & USART_SR_TXE;
 			#else
 				#error "This file is only for STM32F{1, 2, 3, 4}"
