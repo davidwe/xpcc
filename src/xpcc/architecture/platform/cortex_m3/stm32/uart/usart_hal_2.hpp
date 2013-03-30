@@ -56,24 +56,37 @@ namespace xpcc
 		class UsartHal2 : public UartBase
 		{
 		public:
-			enum Interrupt
+			enum Interrupt : uint32_t
 			{
-				INTERRUPT_CHARACTER_MATCH = USART_CR1_CMIE,		/**< */
+			#if defined(STM32F3XX)
+				INTERRUPT_CHARACTER_MATCH = USART_CR1_CMIE,		/**< A USART interrupt is generated when match character is received. */
+			#endif
 				INTERRUPT_TX_EMPTY		  = USART_CR1_TXEIE,	/**< Call interrupt when transmit register is empty (i.e. the byte 
 																 *   has been transfered to the shift out register */
-				INTERRUPT_TX_COMPLETE	  = USART_CR1_TCIE,		/**< called when the byte was completely transmitted */
-				INTERRUPT_RX_NOT_EMPTY	  = USART_CR1_RXNEIE,
-				INTERRUPT_PARITY_ERROR	  = USART_CR1_PEIE,
+				INTERRUPT_TX_COMPLETE	  = USART_CR1_TCIE,		/**< Called when the byte was completely transmitted */
+				INTERRUPT_RX_NOT_EMPTY	  = USART_CR1_RXNEIE,	/**< Call interrupt when char received (RXNE) or overrun occurred (ORE) */
+				INTERRUPT_PARITY_ERROR	  = USART_CR1_PEIE,		/**< Call interrupt when a parity error occurred. */
 			};
 
-			enum InterruptFlag
+			enum InterruptFlag : uint32_t
 			{
+			#if defined(STM32F3XX)
 				FLAG_CHARACTER_MATCH	= USART_ISR_CMF,
 				FLAG_TX_EMPTY			= USART_ISR_TXE,
 				FLAG_TX_COMPLETE		= USART_ISR_TC,
 				FLAG_RX_NOT_EMPTY		= USART_ISR_RXNE,
 				FLAG_PARITY_ERROR		= USART_ISR_PE,
 				FLAG_OVERRUN_ERROR		= USART_ISR_ORE,
+			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4XX)
+				FLAG_TX_EMPTY			= USART_SR_TXE,			/**< Set if the transmit data register is empty. */
+				FLAG_TX_COMPLETE		= USART_SR_TC,			/**< Set if the transmission is complete. */
+				FLAG_RX_NOT_EMPTY		= USART_SR_RXNE,		/**< Set if the receive data register is not empty. */
+				FLAG_PARITY_ERROR		= USART_SR_PE,			/**< Set if a parity error was detected. */
+				FLAG_FRAMING_ERROR		= USART_SR_FE,			/**< Set if a framing error was detected. */
+				FLAG_OVERRUN_ERROR		= USART_SR_ORE,			/**< Set if receive register was not cleared. */
+			#else
+				#error "This file is only for STM32F{1, 2, 3, 4}"
+			#endif
 			};
 
 			enum class Parity : uint32_t
@@ -83,13 +96,19 @@ namespace xpcc
 				Odd  		= USART_CR1_PCE | USART_CR1_PS,
 			};
 
-			enum ErrorFlag
+			enum ErrorFlag : uint32_t
 			{
-				ERROR_OVERRUN 	= USART_ISR_ORE,
-				// set if a de-synchronization,
-				// excessive noise or a break character is detected
+			#if defined(STM32F3XX)
+				ERROR_OVERRUN 	= USART_ISR_ORE,		/**< Set if a de-synchronization, excessive noise or a break character is detected. */
 				ERROR_FRAMING 	= USART_ISR_FE,
 				ERROR_PARITY 	= USART_ISR_PE,
+			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4XX)
+				ERROR_OVERRUN 	= USART_SR_ORE,			/**< Set if a de-synchronization, excessive noise or a break character is detected. */
+				ERROR_FRAMING 	= USART_SR_FE,
+				ERROR_PARITY 	= USART_SR_PE,				
+			#else
+				#error "This file is only for STM32F{1, 2, 3, 4}"
+			#endif
 			};
 
 		public:
@@ -152,7 +171,7 @@ namespace xpcc
 			/*
 			 * Set Baudrate
 			 *
-			 * Remember to enable the periheral before setting the baudrate
+			 * Remember to enable the peripheral before setting the baudrate
 			 */
 			static void
 			setBaudrate(uint32_t baudrate);
@@ -189,7 +208,7 @@ namespace xpcc
 			{
 			#if defined(STM32F3XX)
 				USART2->TDR = data;
-			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4Xx)
+			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4XX)
 				USART2->DR = data;
 			#else
 				#error "This file is only for STM32F{1, 2, 3, 4}"
@@ -208,7 +227,7 @@ namespace xpcc
 			{
 			#if defined(STM32F3XX)
 				return USART2->RDR;
-			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4Xx)
+			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4XX)
 				return USART2->DR;
 			#else
 				#error "This file is only for STM32F{1, 2, 3, 4}"
@@ -251,7 +270,7 @@ namespace xpcc
 			{
 			#if defined(STM32F3XX)
 				return USART2->ISR & USART_ISR_RXNE;
-			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4Xx)
+			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4XX)
 				return USART2->SR & USART_SR_RXNE;
 			#else
 				#error "This file is only for STM32F{1, 2, 3, 4}"
@@ -266,7 +285,7 @@ namespace xpcc
 			{
 			#if defined(STM32F3XX)
 				return USART2->ISR & USART_ISR_TXE;
-			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4Xx)
+			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4XX)
 				return USART2->SR & USART_SR_TXE;
 			#else
 				#error "This file is only for STM32F{1, 2, 3, 4}"
@@ -291,18 +310,31 @@ namespace xpcc
 			static inline InterruptFlag
 			getInterruptFlags()
 			{
+			#if defined(STM32F3XX)		
 				return static_cast<InterruptFlag>( USART2->ISR );
+			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4XX)
+				return static_cast<InterruptFlag>( USART2->SR );
+			#else
+				#error "This file is only for STM32F{1, 2, 3, 4}"
+			#endif			
 			}
 
 			static inline ErrorFlag
 			getErrorFlags()
 			{
+			#if defined(STM32F3XX)		
 				return static_cast<ErrorFlag>( USART2->ISR );
+			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4XX)
+				return static_cast<ErrorFlag>( USART2->SR );
+			#else
+				#error "This file is only for STM32F{1, 2, 3, 4}"
+			#endif			
 			}
 
 			static inline void
 			resetInterruptFlags(InterruptFlag flags)
 			{
+			#if defined(STM32F3XX)					
 				// Not all flags can be cleared by writing to this reg
 				const uint32_t mask = USART_ICR_PECF  | USART_ICR_FECF   |
 					USART_ICR_NCF   | USART_ICR_ORECF | USART_ICR_IDLECF |
@@ -312,6 +344,12 @@ namespace xpcc
 				// Flags are cleared by writing a one to the flag position.
 				// Writing a zero is (hopefully) ignored.
 				USART2->ICR = (flags & mask);
+			#elif defined(STM32F10X) || defined(STM32F2XX) || defined(STM32F4XX)
+				(void) flags;
+				#warning resetInterruptFlags Not yet implemented
+			#else
+				#error "This file is only for STM32F{1, 2, 3, 4}"
+			#endif			
 			}
 		};
 	}
