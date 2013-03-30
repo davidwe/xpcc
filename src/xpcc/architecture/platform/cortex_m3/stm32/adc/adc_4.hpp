@@ -27,7 +27,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 // ----------------------------------------------------------------------------
-/** \file adc_3.hpp
+/** \file adc_4.hpp
  *
  *	The documentation is compiled for STM32F4XX.
  *
@@ -48,8 +48,8 @@ inline uint32_t operator&(name a, uint32_t b) \
 {return (static_cast<uint32_t>(a) & (b));}
 
 
-#ifndef XPCC_STM32__ADC3_HPP
-#define XPCC_STM32__ADC3_HPP
+#ifndef XPCC_STM32__ADC4_HPP
+#define XPCC_STM32__ADC4_HPP
 
 #if defined(__DOXYGEN__)
 	#if !defined(STM32F4XX)
@@ -71,450 +71,11 @@ namespace xpcc
 {
 	namespace stm32
 	{
-
-#if defined(STM32F4XX) || defined(STM32F2XX) || defined(STM32F10X)
-		/**
-		 * Analog/Digital-Converter module (ADC3).
-		 * 
-		 * The 12-bit ADC is a successive approximation analog-to-digital
-		 * converter. It has up to 18 multiplexed channels allowing it measure
-		 * signals from 16 external and two internal sources.
-		 * The result of the ADC is stored in a left-aligned or right-aligned
-		 * 16-bit data register.
-		 * 
-		 * This API is designed for the internal ADCs of STM32F4XX, 
-		 * STM32F10X_LD, STM32F10X_LD_VL, STM32F10X_MD, STM32F10X_MD_VL, 
-		 * STM32F10X_HD, STM32F10X_HD_VL, STM32F10X_XL and STM32F10X_CL.
-		 * 
-		 * \author	Stephan Kugelmann, David Hebbeker
-		 * \ingroup	stm32
-		 */
-		class Adc3 : public Interface
-		{
-		public:
-
-			/**
-			 * Channels, which can be used with this ADC.
-			 * 
-			 * You can specify the channel by using a pin-name, like PIN_C0, an 
-			 * internal sensor, like TEMPERATURE_SENSOR or just the plain 
-			 * channel number, like CHANNEL_0. 
-			 */
-			enum Channels
-			{
-				PIN_A0 = 0,
-				PIN_A1 = 1,
-				PIN_A2 = 2,
-				PIN_A3 = 3,
-				PIN_C0 = 10,
-				PIN_C1 = 11,
-				PIN_C2 = 12,
-				PIN_C3 = 13,
-				// For ADC3
-				PIN_F6 = 4,
-				PIN_F7 = 5,
-				PIN_F8 = 6,
-				PIN_F9 = 7,
-				PIN_F10 = 8,
-#if defined(STM32F2XX) || defined(STM32F4XX)
-				PIN_F3 = 9,
-				PIN_F4 = 14,
-				PIN_F5 = 15,
-#endif
-				#if defined(STM32F2XX) || defined(STM32F4XX)				
-				/** Flag to show, that the temperature and V_Ref measurements 
-				 * 	are available for this ADC.
-				 */ 
-				#define TEMPERATURE_REFVOLTAGE_AVIALABLE (1) 
-				
-				/**
-				 * The half V_BAT voltage.
-				 */
-				VBAT = 18,
-				
-				#endif
-				
-#ifdef TEMPERATURE_REFVOLTAGE_AVIALABLE
-				/** Measure the ambient temperature of the device.
-				 * 
-				 * \li Supported temperature range: -40 to 125 C
-				 * \li Precision: +-1.5 C
-				 * 
-				 * @see Reference manual (i.e. RM0090) for the formula for the
-				 * 	calculation of the actual temperature.
-				 * @note The TSVREFE bit must be set to enable the conversion of 
-				 * 	this internal channel.
-				 */
-				TEMPERATURE_SENSOR = 16,
-
-				/** Internal reference voltage.
-				 * 
-				 * @note The TSVREFE bit must be set to enable the conversion of 
-				 * 	this internal channel.
-				 */
-				V_REFINT = 17,
-#endif // TEMPERATURE_REFVOLTAGE_AVIALABLE
-				
-				CHANNEL_0 = 0,
-				CHANNEL_1 = 1,
-				CHANNEL_2 = 2,
-				CHANNEL_3 = 3,
-				CHANNEL_4 = 4,
-				CHANNEL_5 = 5,
-				CHANNEL_6 = 6,
-				CHANNEL_7 = 7,
-				CHANNEL_8 = 8,
-				CHANNEL_10= 10,
-				CHANNEL_11 = 11,
-				CHANNEL_12 = 12,
-				CHANNEL_13 = 13,
-#if defined(STM32F2XX) || defined(STM32F4XX)
-				CHANNEL_9 = 9,
-				CHANNEL_14 = 14,
-				CHANNEL_15 = 15,
-				CHANNEL_16 = 16,
-				CHANNEL_17 = 17,
-				CHANNEL_18 = 18
-#elif defined(STM32F10X)
-				#endif
-			};
-			
-			/**
-			 * Programmable prescaler to divide the APB2 clock frequency, which 
-			 * is used fot the analog circuitry (not the digital interface which
-			 * is used for registers). 
-			 */
-			enum Prescaler
-			{
-				PRESCALER_2 = 0b00,	//!< PCLK2 divided by 2
-				PRESCALER_4 = 0b01,	//!< PCLK2 divided by 4
-				PRESCALER_6 = 0b10,	//!< PCLK2 divided by 6
-				PRESCALER_8 = 0b11	//!< PCLK2 divided by 8
-			};
-			
-			/**
-			 * Sampling time of the input voltage.
-			 * 
-			 * Total conversion time is T_con = Sampling time + 12 cycles
-			 */
-			enum SampleTime
-			{
-#if defined(STM32F2XX) || defined(STM32F4XX)
-				CYCLES_3 	= 0b000,	//!< 3 ADCCLK cycles
-				CYCLES_15 	= 0b001,	//!< 15 ADCCLK cycles
-				CYCLES_28 	= 0b010,	//!< 28 ADCCLK cycles
-				CYCLES_56 	= 0b011,	//!< 56 ADCCLK cycles
-				CYCLES_84 	= 0b100,	//!< 84 ADCCLK cycles
-				CYCLES_112 	= 0b101,	//!< 112 ADCCLK cycles
-				CYCLES_144 	= 0b110,	//!< 144 ADCCLK cycles
-				CYCLES_480 	= 0b111		//!< 480 ADCCLK cycles
-#elif defined(STM32F10X)
-				CYCLES_2 	= 0b000,	//!< 1.5 ADCCLK cycles
-				CYCLES_8 	= 0b001,	//!< 7.5 ADCCLK cycles
-				CYCLES_14 	= 0b010,	//!< 13.5 ADCCLK cycles
-				CYCLES_29 	= 0b011,	//!< 28.5 ADCCLK cycles
-				CYCLES_42 	= 0b100,	//!< 41.5 ADCCLK cycles
-				CYCLES_56 	= 0b101,	//!< 55.5 ADCCLK cycles
-				CYCLES_72 	= 0b110,	//!< 71.5 ADCCLK cycles
-				CYCLES_240 	= 0b111		//!< 239.5 ADCCLK cycles
-#endif
-			}; 
-
-			/**
-			 * Possible interrupts.
-			 * 
-			 * An interrupt can be produced on the end of conversion for regular
-			 * and injected groups, when the analog watchdog status bit is set 
-			 * and when the overrun status bit is set. 
-			 */
-			enum Interrupt
-			{
-				END_OF_CONVERSION_REGULAR	= ADC_SR_EOC,	//!< End of conversion of a regular group
-				END_OF_CONVERSION_INJECTED	= ADC_SR_JEOC,	//!< End of conversion of an injected group
-				ANALOG_WATCHDOG				= ADC_SR_AWD,	//!< Analog watchdog status bit is set
-#if defined(STM32F2XX) || defined(STM32F4XX) 
-				OVERRUN						= ADC_SR_OVR	//!< Overrun (if data are lost)
-#endif
-			};
-
-		public:
-			/**
-			 * Initialize and enable the A/D converter.
-			 *
-			 * Enables the ADC clock and switches on the ADC. The ADC clock
-			 * prescaler will be set as well.
-			 * 
-			 * The ADC clock must not exceed 14 MHz. Default is a prescaler
-			 * of 8 which gives a 9 Mhz ADC clock at 72 MHz APB2 clock.
-			 * 
-			 * @param prescaler
-			 * 		The prescaler specifies by which factor the 
-			 * 		APB2 clock (72 MHz) will be divided.
-			 */
-			static inline void
-			initialize(Prescaler prescaler=PRESCALER_8)
-			{
-				// Initialize ADC
-				RCC->APB2ENR |= RCC_APB2ENR_ADC3EN;	// start ADC Clock
-				ADC3->CR2 |= ADC_CR2_ADON;			// switch on ADC
-				setPrescaler(prescaler);
-			}
-			
-			// TODO
-			//static void
-			//calibrate();
-			
-			/** 
-			 * Select the frequency of the clock to the ADC. The clock is common
-			 * for all the ADCs (ADC1, ADC2, ADC3) and all channels. 
-			 * 
-			 * @pre The ADC clock must be started and the ADC switched on with 
-			 * 	initialize()
-			 * 
-			 * @param prescaler
-			 * 		The prescaler specifies by which factor the system clock
-			 * 		will be divided.
-			 */
-			static inline void
-			setPrescaler(const Prescaler prescaler)
-			{
-#if defined(STM32F2XX) || defined(STM32F4XX)
-				ADC->CCR &= ~(0b11 << 17);				// Clear prescaler
-				ADC->CCR |= prescaler << 17;		// set prescaler
-#elif defined(STM32F10X)
-				RCC->CFGR &= ~(0b11 << 14);			// Clear prescaler
-				RCC->CFGR |= prescaler << 14;		// set prescaler
-#endif
-			}
-			
-#if defined(TEMPERATURE_REFVOLTAGE_AVIALABLE) || defined(__DOXYGEN__)
-			/** Switch on temperature- and V_REF measurement. */
-			static inline void
-			enableTemperatureRefVMeasurement(void)
-			{
-#if defined(STM32F2XX) || defined(STM32F4XX)
-				ADC->CCR |= ADC_CCR_TSVREFE;
-#elif defined(STM32F10X)
-				ADC3->CR2 |= ADC_CR2_TSVREFE;
-#endif
-			}
-
-			/** Switch on temperature- and V_REF measurement. */
-			static inline void
-			disableTemperatureRefVMeasurement(void)
-			{
-#if defined(STM32F2XX) || defined(STM32F4XX)
-				ADC->CCR &= ~ADC_CCR_TSVREFE;
-#elif defined(STM32F10X)
-				ADC3->CR2 &= ~ADC_CR2_TSVREFE;
-#endif
-			}
-#endif // TEMPERATURE_REFVOLTAGE_AVIALABLE
-
-			/**
-			 * Change the presentation of the ADC conversion result.
-			 *
-			 * @param enable
-			 * 		Set to \c true to left adjust the result. 
-			 *		Otherwise, the result is right adjusted.
-			 * 
-			 * @pre The ADC clock must be started and the ADC switched on with 
-			 * 		initialize()
-			 */
-			static inline void
-			setLeftAdjustResult(const bool enable)
-			{
-				if (enable) {
-					ADC3->CR2 |= ADC_CR2_ALIGN;
-				}
-				else {
-					ADC3->CR2 &= ~ADC_CR2_ALIGN;
-				}
-			}
-
-			/**
-			 * Analog channel selection.
-			 * 
-			 * This not for scan mode. The number of channels will be set to 1, 
-			 * the channel selected and the corresponding pin will be set to 
-			 * analog input.
-			 * If the the channel is modified during a conversion, the current
-			 * conversion is reset and a new start pulse is sent to the ADC to 
-			 * convert the new chosen channnel / group of channels.
-			 * 
-			 * 
-			 * @param channel		The channel which shall be read.
-			 * @param sampleTime	The sample time to sample the input voltage.
-			 * 
-			 * @pre The ADC clock must be started and the ADC switched on with 
-			 * 		initialize()
-			 */
-			static void
-			setChannel(const Channels channel, const SampleTime sampleTime=static_cast<SampleTime>(0b000));
-
-			/**
-			 * Enables free running mode
-			 *
-			 * The ADC will continously start conversions and provide the most
-			 * recent result in the ADC register.
-			 * 
-			 * @pre The ADC clock must be started and the ADC switched on with 
-			 * 		initialize()
-			 */
-			static inline void
-			enableFreeRunningMode(void)
-			{
-				ADC3->CR2 |= ADC_CR2_CONT;	// set to continuous mode
-			}
-
-			/**
-			 * Disables free running mode
-			 *
-			 * The ADC will do only one sample and stop. The result will be in 
-			 * the ADC register.
-			 * 
-			 * @pre The ADC clock must be started and the ADC switched on with 
-			 * 		initialize()
-			 */
-			static inline void
-			disableFreeRunningMode(void)
-			{
-				ADC3->CR2 &= ~ADC_CR2_CONT;		// set to single mode
-			}
-
-			/**
-			 * Returns if the specified interrupt flag is set.
-			 * 
-			 * @return \c true if the flag is set
-			 * @pre The ADC clock must be started and the ADC switched on with 
-			 * 	initialize()
-			 * @param flag The interrupt flag, which shall be checked.
-			 */
-			static inline bool
-			isInterruptFlagSet(const Interrupt flag)
-			{
-				return ADC3->SR & flag;
-			}
-
-			/**
-			 * Clears the specified interrupt flag.
-			 *
-			 * @param flag
-			 * 		The interrupt flag, which shall be cleared.
-			 *
-			 * @pre The ADC clock must be started and the ADC switched on with 
-			 * 		initialize().
-			 */
-			static inline void
-			resetInterruptFlags(const Interrupt flag)
-			{
-				ADC3->SR &= ~flag;
-			}
-
-			/**
-			 * Disables the ADC Conversion Complete Interrupt.
-			 */
-			static void
-			disableInterrupt(const Interrupt interrupt);
-
-			/**
-			 * Enables the ADC Conversion Complete Interrupt.
-			 *
-			 * You could catch the interrupt using this example function:
-			 * \li for STM32F4XX: \code extern "C" void ADC_IRQHandler() \endcode
-			 * \li for STM32F10X: \code extern "C" void ADC1_2_IRQHandler() \endcode
-			 * 
-			 * @pre The ADC clock must be started and the ADC switched on with 
-			 * 	initialize()
-			 * 
-			 * @param priority Priority to set
-			 * @param interrupt The interrupt, which shall be enabled. See 
-			 * 	Interrupt for available interrupts.
-			 * 
-			 * @note ADC1 and ADC2 interrupts are mapped onto the same interrupt
-			 * 	vector. ADC3 interrupts are mapped onto a separate interrupt 
-			 * 	vector.
-			 */
-			static void
-			enableInterrupt(const Interrupt interrupt, const uint32_t priority);
-			
-			/**
-			 * Turns off the ADC and its clock.
-			 */
-			static inline void
-			shutdownAdc(void)
-			{
-				ADC3->CR2 &= ~(ADC_CR2_ADON);		// switch off ADC
-				RCC->APB2ENR &= ~RCC_APB2ENR_ADC3EN; // stop ADC Clock
-			}
-
-			/**
-			 * Start a new conversion or continuous conversions.
-			 * 
-			 * @pre A ADC channel must be selected with setChannel(). When using
-			 * 	a STM32F10x a delay of at least t_STAB after initialize() must 
-			 * 	be waited! 
-			 * 
-			 * @post The result can be fetched with getValue()
-			 * @attention When using a STM32F10x, the application should allow a delay of t_STAB between
-			 * 	power up and start of conversion. Refer to Reference Manual 
-			 * 	(RM0008) ADC_CR2_ADON. 
-			 */
-			static inline void
-			startConversion(void)
-			{
-#if defined(STM32F2XX) || defined(STM32F4XX)
-				resetInterruptFlags(static_cast<Interrupt>(
-						END_OF_CONVERSION_REGULAR | END_OF_CONVERSION_INJECTED |
-						ANALOG_WATCHDOG | OVERRUN));
-#elif defined(STM32F10X)
-				resetInterruptFlags(static_cast<Interrupt>(
-						END_OF_CONVERSION_REGULAR | END_OF_CONVERSION_INJECTED |
-						ANALOG_WATCHDOG));
-				
-				// select the SWSTART event used to trigger the start of
-				// conversion of a regular group
-				ADC3->CR2 |= ADC_CR2_EXTTRIG | ADC_CR2_EXTSEL_0 |
-						ADC_CR2_EXTSEL_1 | ADC_CR2_EXTSEL_2;
-#endif
-				// starts single conversion for the regular group
-				ADC3->CR2 |= ADC_CR2_SWSTART;
-			}
-
-			/** 
-			 * @return If the conversion is finished.
-			 * @pre A conversion should have been stared with startConversion()
-			 */
-			static inline bool
-			isConversionFinished(void)
-			{
-				return (ADC3->SR & ADC_SR_EOC);
-			}
-
-			/**
-			 * @return The most recent 16bit result of the ADC conversion.
-			 * @pre A conversion should have been stared with startConversion()
-			 * 
-			 * To have a blocking GET you might do it this way:
-			 * @code
-				while(!isConversionFinished()) 
-				{
-					// Waiting for conversion
-				}
-				@endcode
-			 */
-			static inline uint16_t
-			getValue(void)
-			{
-				return ADC3->DR;
-			}
-		};
-
-#elif defined(STM32F3XX)
+#if defined(STM32F3XX)
 /* id < 4 */
 
 		/**
-		 * Analog/Digital-Converter module (ADC3).
+		 * Analog/Digital-Converter module (ADC4).
 		 *
 		 * The 12-bit ADC is a successive approximation analog-to-digital
 		 * converter. It has up to 19 multiplexed channels allowing it measure
@@ -527,7 +88,7 @@ namespace xpcc
 		 * \author	Kevin Laeufer
 		 * \ingroup	stm32
 		 */
-		class Adc3 : public Interface
+		class Adc4 : public Interface
 		{
 		public:
 			/**
@@ -552,11 +113,11 @@ namespace xpcc
 				// channels 11-16 are not available on all ADCs
 				Channel17 = 17,
 				Channel18 = 18,
-				PinB1  =  1,
-				PinE9  =  2,
-				PinE13 =  3,
-				Vss    =  4,	// ADC3_IN4 not bonded and connected to VSS
-				PinB13 =  5,
+				PinE14 =  1,
+				PinE15 =  2,
+				PinB12 =  3,
+				PinB14 =  4,
+				PinB15 =  5,
 				PinE8  =  6,
 				PinD10 =  7,
 				PinD11 =  8,
@@ -565,15 +126,10 @@ namespace xpcc
 				Channel11 = 11,
 				PinD14 = 11,
 				Channel12 = 12,
-				PinB0  = 12,
+				PinD8  = 12,
 				Channel13 = 13,
-				PinE7  = 13,
-				Channel14 = 14,
-				PinE10 = 14,
-				Channel15 = 15,
-				PinE11 = 15,
-				Channel16 = 16,
-				PinE12 = 16,
+				PinD9  = 13,
+				// 14-16 reserved
 				Opamp3 = 17,
 				InternalReference = 18,
 			};
@@ -694,10 +250,10 @@ namespace xpcc
 			static void inline
 			disable(const bool blocking = true)
 			{
-				ADC3->CR |= ADC_CR_ADDIS;
+				ADC4->CR |= ADC_CR_ADDIS;
 				if (blocking) {
 					// wait for ADC_CR_ADDIS to be cleared by hw
-					while(ADC3->CR & ADC_CR_ADDIS);
+					while(ADC4->CR & ADC_CR_ADDIS);
 				}
 				// disable clock
 				RCC->AHBENR &= ~RCC_AHBENR_ADC34EN;
@@ -738,11 +294,11 @@ namespace xpcc
 											const bool blocking = true)
 			{
 				if (mode != CalibrationMode::DoNotCalibrate) {
-					ADC3->CR |= ADC_CR_ADCAL |
+					ADC4->CR |= ADC_CR_ADCAL |
 													static_cast<uint32_t>(mode);
 					if(blocking) {
 						// wait for ADC_CR_ADCAL to be cleared by hw
-						while(ADC3->CR & ADC_CR_ADCAL);
+						while(ADC4->CR & ADC_CR_ADCAL);
 					}
 				}
 			}
@@ -761,10 +317,10 @@ namespace xpcc
 			setLeftAdjustResult(const bool enable)
 			{
 				if (enable) {
-					ADC3->CFGR |= ADC_CFGR_ALIGN;
+					ADC4->CFGR |= ADC_CFGR_ALIGN;
 				}
 				else {
-					ADC3->CFGR &= ~ADC_CFGR_ALIGN;
+					ADC4->CFGR &= ~ADC_CFGR_ALIGN;
 				}
 			}
 
@@ -791,21 +347,21 @@ namespace xpcc
 			{
 				uint32_t tmpreg;
 				// SQR1[10:6] contain SQ1[4:0]
-				ADC3->SQR1 = (static_cast<uint8_t>(channel) & 0b11111) << 6;
+				ADC4->SQR1 = (static_cast<uint8_t>(channel) & 0b11111) << 6;
 
 				if (static_cast<uint8_t>(channel) < 10) {
-					tmpreg = ADC3->SMPR1
+					tmpreg = ADC4->SMPR1
 						& ((~ADC_SMPR1_SMP0) << (static_cast<uint8_t>(channel) * 3));
 					tmpreg |= static_cast<uint32_t>(sampleTime) <<
 									(static_cast<uint8_t>(channel) * 3);
-					ADC3->SMPR1 = tmpreg;
+					ADC4->SMPR1 = tmpreg;
 				}
 				else {
-					tmpreg = ADC3->SMPR2
+					tmpreg = ADC4->SMPR2
 						& ((~ADC_SMPR2_SMP10) << ((static_cast<uint8_t>(channel)-10) * 3));
 					tmpreg |= static_cast<uint32_t>(sampleTime) <<
 									((static_cast<uint8_t>(channel)-10) * 3);
-					ADC3->SMPR2 = tmpreg;
+					ADC4->SMPR2 = tmpreg;
 				}
 			}
 
@@ -822,9 +378,9 @@ namespace xpcc
 			setFreeRunningMode(const bool enable)
 			{
 				if (enable) {
-					ADC3->CFGR |=  ADC_CFGR_CONT; // set to continuous mode
+					ADC4->CFGR |=  ADC_CFGR_CONT; // set to continuous mode
 				} else {
-					ADC3->CFGR &= ~ADC_CFGR_CONT; // set to single mode
+					ADC4->CFGR &= ~ADC_CFGR_CONT; // set to single mode
 				}
 			}
 
@@ -845,7 +401,7 @@ namespace xpcc
 					static_cast<uint32_t>(InterruptFlag::EndOfSampling) |
 					static_cast<uint32_t>(InterruptFlag::Overrun)));
 				// starts single conversion for the regular group
-				ADC3->CR |= ADC_CR_ADSTART;
+				ADC4->CR |= ADC_CR_ADSTART;
 			}
 
 			/**
@@ -874,7 +430,7 @@ namespace xpcc
 			static inline uint16_t
 			getValue(void)
 			{
-				return ADC3->DR;
+				return ADC4->DR;
 			}
 
 		private:
@@ -901,7 +457,7 @@ namespace xpcc
 			enableInterruptVector(const uint32_t priority,
 													const bool enable = true)
 			{
-				const IRQn_Type INTERRUPT_VECTOR = ADC3_IRQn;
+				const IRQn_Type INTERRUPT_VECTOR = ADC4_IRQn;
 				if (enable) {
 					NVIC_SetPriority(INTERRUPT_VECTOR, priority);
 					nvicEnableInterrupt(INTERRUPT_VECTOR);
@@ -913,19 +469,19 @@ namespace xpcc
 			static inline void
 			enableInterrupt(const Interrupt interrupt)
 			{
-				ADC3->IER |= static_cast<uint32_t>(interrupt);
+				ADC4->IER |= static_cast<uint32_t>(interrupt);
 			}
 
 			static inline void
 			disableInterrupt(const Interrupt interrupt)
 			{
-				ADC3->IER &= ~static_cast<uint32_t>(interrupt);
+				ADC4->IER &= ~static_cast<uint32_t>(interrupt);
 			}
 
 			static inline InterruptFlag
 			getInterruptFlags()
 			{
-				return static_cast<InterruptFlag>(ADC3->ISR);
+				return static_cast<InterruptFlag>(ADC4->ISR);
 			}
 
 			static inline void
@@ -933,11 +489,11 @@ namespace xpcc
 			{
 				// Flags are cleared by writing a one to the flag position.
 				// Writing a zero is ignored.
-				ADC3->ISR = static_cast<uint32_t>(flags);
+				ADC4->ISR = static_cast<uint32_t>(flags);
 			}
 		};
 
-		ENUM_CLASS_FLAG(Adc3::InterruptFlag)
+		ENUM_CLASS_FLAG(Adc4::InterruptFlag)
 #else
 	#  error "Unknown CPU Type. Please define STM32F10X_.., \
 											STM32F2XX, STM32F3XX or STM32F4XX"
@@ -948,4 +504,4 @@ namespace xpcc
 
 
 #endif // defined(STM32F2XX) || defined(STM32F4XX) || defined (STM32F10X_HD) || defined (STM32F10X_XL)
-#endif	// XPCC_STM32__ADC3_HPP
+#endif	// XPCC_STM32__ADC4_HPP

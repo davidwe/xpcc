@@ -106,6 +106,10 @@
 
 // for testing
 #include "stm32/timer.hpp"
+
+#include "stm32/adc/adc_1.hpp"
+#include "stm32/adc/adc_2.hpp"
+#include "stm32/adc/adc_3.hpp"
 #endif
 
 
@@ -118,7 +122,7 @@
 #include "stm32/uart/uart_hal_5.hpp"
 #endif
 
-// COMP1-7 only available on STM32F3 series
+// COMP1-7 and ADC4 only available on STM32F3 series
 #if defined(STM32F3XX)
 #include "stm32/comp/comp_1.hpp"
 #include "stm32/comp/comp_2.hpp"
@@ -127,6 +131,7 @@
 #include "stm32/comp/comp_5.hpp"
 #include "stm32/comp/comp_6.hpp"
 #include "stm32/comp/comp_7.hpp"
+#include "stm32/adc/adc_4.hpp"
 #endif
 
 
@@ -140,9 +145,7 @@
 #include "stm32/spi/spi_2.hpp"
 #include "stm32/spi/spi_3.hpp"
 
-#include "stm32/adc/adc_1.hpp"
-#include "stm32/adc/adc_2.hpp"
-#include "stm32/adc/adc_3.hpp"
+
 
 #include "stm32/i2c/i2c_master_1.hpp"
 #include "stm32/i2c/i2c_master_2.hpp"
