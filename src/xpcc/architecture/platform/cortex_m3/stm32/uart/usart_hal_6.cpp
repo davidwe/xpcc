@@ -52,7 +52,9 @@ namespace
 	
 	GPIO__OUTPUT(TxdG14, G, 14);
 	GPIO__INPUT(RxdG9, G, 9);
-	
+}
+namespace
+{
 	static const uint32_t apbClk = STM32_APB2_FREQUENCY;	// APB2
 }
 
@@ -60,6 +62,9 @@ namespace
 void
 xpcc::stm32::UsartHal6::configurePins(Mapping mapping)
 {
+	// Enable clock
+	RCC->APB2ENR |= RCC_APB2ENR_USART6EN;
+	
 	// Initialize IO pins
 #if defined(STM32F2XX) || defined(STM32F3XX) || defined(STM32F4XX)
 	if (mapping == REMAP_PC6_PC7) {

@@ -62,6 +62,9 @@ namespace
 void
 xpcc::stm32::Usart3::configurePins(Mapping mapping)
 {
+	// Enable clock
+	RCC->APB1ENR |= RCC_APB1ENR_USART3EN;
+	
 	// Initialize IO pins
 #if defined(STM32F2XX) || defined(STM32F3XX) || defined(STM32F4XX)
 	if (mapping == REMAP_PB10_PB11) {
@@ -100,11 +103,8 @@ xpcc::stm32::Usart3::configurePins(Mapping mapping)
 void
 xpcc::stm32::Usart3::setBaudrate(uint32_t baudrate)
 {
-	// enable clock
+	// Enable clock
 	RCC->APB1ENR |= RCC_APB1ENR_USART3EN;
-	// reset timer
-	RCC->APB1RSTR |=  RCC_APB1RSTR_USART3RST;
-	RCC->APB1RSTR &= ~RCC_APB1RSTR_USART3RST;
 	
 	USART3->CR1 = 0;
 	

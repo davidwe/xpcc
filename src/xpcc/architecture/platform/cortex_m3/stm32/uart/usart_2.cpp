@@ -67,6 +67,9 @@ namespace
 void
 xpcc::stm32::Usart2::configurePins(Mapping mapping)
 {
+	// Enable clock
+	RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
+	
 	// Initialize IO pins
 #if defined(STM32F2XX) || defined(STM32F3XX) || defined(STM32F4XX)
 	if (mapping == REMAP_PA2_PA3) {
@@ -107,11 +110,8 @@ xpcc::stm32::Usart2::configurePins(Mapping mapping)
 void
 xpcc::stm32::Usart2::setBaudrate(uint32_t baudrate)
 {
-	// enable clock
+	// Enable clock
 	RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
-	// reset timer
-	RCC->APB1RSTR |=  RCC_APB1RSTR_USART2RST;
-	RCC->APB1RSTR &= ~RCC_APB1RSTR_USART2RST;
 	
 	USART2->CR1 = 0;
 	

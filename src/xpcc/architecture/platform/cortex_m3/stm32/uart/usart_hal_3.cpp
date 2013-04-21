@@ -53,7 +53,9 @@ namespace
 	
 	GPIO__OUTPUT(TxdC10, C, 10);
 	GPIO__INPUT(RxdC11, C, 11);
-	
+}
+namespace
+{
 	static const uint32_t apbClk = STM32_APB1_FREQUENCY;	// APB1
 }
 
@@ -61,6 +63,9 @@ namespace
 void
 xpcc::stm32::UsartHal3::configurePins(Mapping mapping)
 {
+	// Enable clock
+	RCC->APB1ENR |= RCC_APB1ENR_USART3EN;
+	
 	// Initialize IO pins
 #if defined(STM32F2XX) || defined(STM32F3XX) || defined(STM32F4XX)
 	if (mapping == REMAP_PB10_PB11) {

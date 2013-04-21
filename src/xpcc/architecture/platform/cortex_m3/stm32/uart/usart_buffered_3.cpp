@@ -71,6 +71,9 @@ namespace
 void
 xpcc::stm32::BufferedUsart3::configurePins(Mapping mapping)
 {
+	// Enable clock
+	RCC->APB1ENR |= RCC_APB1ENR_USART3EN;
+	
 	// Initialize IO pins
 #if defined(STM32F2XX) || defined(STM32F3XX) || defined(STM32F4XX)
 	if (mapping == REMAP_PB10_PB11) {

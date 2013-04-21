@@ -50,7 +50,9 @@ namespace
 {
 	GPIO__OUTPUT(TxdC12, C, 12);
 	GPIO__INPUT(RxdD2, D, 2);
-	
+}
+namespace
+{
 	static const uint32_t apbClk = STM32_APB1_FREQUENCY;	// APB1
 }
 
@@ -58,6 +60,9 @@ namespace
 void
 xpcc::stm32::UartHal5::configurePins(Mapping mapping)
 {
+	// Enable clock
+	RCC->APB1ENR |= RCC_APB1ENR_UART5EN;
+	
 	// Initialize IO pins
 #if defined(STM32F2XX) || defined(STM32F3XX) || defined(STM32F4XX)
 	(void) mapping;		// avoid compiler warning
